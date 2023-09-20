@@ -1,0 +1,383 @@
+// Project identifier: B99292359FFD910ED13A7E6C7F9705B8742F0D79
+#include <array>
+#include <deque>
+#include <getopt.h>
+#include <iostream>
+#include <limits>
+#include <string>
+#include <type_traits>
+#include <vector>
+using namespace std;
+
+struct castle {
+
+  bool dfs = false;
+  char input_mode;
+  char output_mode;
+  uint32_t R;
+  uint32_t N;
+  uint32_t pipe_num;
+  char pipe_char{};
+
+  vector<vector<vector<char>>> map_1;
+  vector<vector<vector<char>>> map_2;
+
+  deque<array<uint32_t, 3>> container;
+
+  array<uint32_t, 3> n;
+  array<uint32_t, 3> e;
+  array<uint32_t, 3> w;
+  array<uint32_t, 3> s;
+  array<uint32_t, 3> p;
+  array<uint32_t, 3> c;
+  array<uint32_t, 3> Start_point;
+  array<uint32_t, 3> current_point;
+
+  castle() {
+    cin >> input_mode >> R >> N;
+    map_1.resize(R, vector<vector<char>>(N, vector<char>(N, '.')));
+    map_2.resize(R, vector<vector<char>>(N, vector<char>(N, '\0')));
+  }
+
+  void read_M() {
+    char r_M;
+    uint32_t room_rm;
+    uint32_t row_rm;
+    uint32_t col_rm;
+    
+
+    for (room_rm = 0; room_rm < R; room_rm++) {
+      for (row_rm = 0; row_rm < N; row_rm++) {
+        cin >> r_M;
+        while (r_M == '/') {
+          cin.ignore(numeric_limits<streamsize>::max(), '\n');
+          cin >> r_M;
+        }
+        for (col_rm = 0; col_rm < N - 1; col_rm++) {
+          map_1[room_rm][row_rm][col_rm] = r_M;
+          if (r_M == 'S') {
+            Start_point[0] = room_rm;
+            Start_point[1] = row_rm;
+            Start_point[2] = col_rm;
+            container.push_back(Start_point);
+          }
+          cin >> r_M;
+        }
+        map_1[room_rm][row_rm][col_rm] = r_M;
+        if (r_M == 'S') {
+          Start_point[0] = room_rm;
+          Start_point[1] = row_rm;
+          Start_point[2] = col_rm;
+          container.push_back(Start_point);
+        }
+      }
+    }
+  }
+
+  void read_L() {
+    char r_L;
+    char place_L;
+    uint32_t room_rl;
+    uint32_t row_rl;
+    uint32_t col_rl;
+
+    while (cin >> r_L) {
+      if (r_L == '/') {
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        continue;
+      }
+      cin >> room_rl >> r_L >> row_rl >> r_L >> col_rl >> r_L >> place_L >> r_L;
+      map_1[room_rl][row_rl][col_rl] = place_L;
+
+      if (place_L == 'S') {
+        Start_point[0] = room_rl;
+        Start_point[1] = row_rl;
+        Start_point[2] = col_rl;
+        container.push_back(Start_point);
+      }
+    }
+  }
+
+  bool isValid(char s) {
+    if (s >= '0' && s <= '9') {
+      return true;
+    } else if (s == 'C' || s == '.') {
+      return true;
+    }
+    return false;
+  }
+
+  bool isPipe(char s) {
+    if (s >= '0' && s <= '9') {
+      return true;
+    }
+    return false;
+  }
+
+  void search_add() {
+    char place_search;
+    uint32_t room_sa;
+    uint32_t row_sa;
+    uint32_t col_sa;
+
+    while (!container.empty()) {
+
+      if (dfs) {
+        current_point = container.back();
+        container.pop_back();
+      } else {
+        current_point = container.front();
+        container.pop_front();
+      }
+
+      room_sa = current_point[0];
+      row_sa = current_point[1];
+      col_sa = current_point[2];
+      place_search = map_1[room_sa][row_sa][col_sa];
+
+      if (isPipe(place_search)) {
+        p[0] = static_cast<uint32_t>(place_search - '0');
+        if (p[0] >= R)
+          continue;
+        if (map_2[static_cast<uint32_t>(place_search - '0')][row_sa][col_sa] ==
+            0) {
+          map_2[p[0]][row_sa][col_sa] = static_cast<char>(room_sa + '0');
+          p[1] = current_point[1];
+          p[2] = current_point[2];
+          container.push_back(p);
+          if (map_1[p[0]][row_sa][col_sa] == 'C')
+            return;
+        }
+        continue;
+      }
+
+      if (current_point[1] >= 1) {
+        if (isValid(map_1[room_sa][row_sa - 1][col_sa]) &&
+            map_2[room_sa][row_sa - 1][col_sa] == 0) {
+          n[0] = current_point[0];
+          n[1] = current_point[1] - 1;
+          n[2] = current_point[2];
+          container.push_back(n);
+          map_2[room_sa][row_sa - 1][col_sa] = 'n';
+          if (map_1[room_sa][row_sa - 1][col_sa] == 'C') {
+            return;
+          }
+        }
+      }
+
+      if (current_point[1] + 1 < N) {
+        if (isValid(map_1[room_sa][row_sa][col_sa] + 1) &&
+            map_2[room_sa][row_sa + 1][col_sa] == 0) {
+          e[0] = current_point[0];
+          e[1] = current_point[1] + 1;
+          e[2] = current_point[2];
+          container.push_back(n);
+          map_2[room_sa][row_sa + 1][col_sa] = 'e';
+          if (map_1[room_sa][row_sa + 1][col_sa] == 'C') {
+            return;
+          }
+        }
+      }
+
+      if (current_point[1] + 1 < N) {
+        if (isValid(map_1[room_sa][row_sa + 1][col_sa]) &&
+            map_2[room_sa][row_sa + 1][col_sa] == 0) {
+          s[0] = current_point[0];
+          s[1] = current_point[1] + 1;
+          s[2] = current_point[2];
+          container.push_back(n);
+          map_2[room_sa][row_sa + 1][col_sa] = 's';
+          if (map_1[room_sa][row_sa + 1][col_sa] == 'C') {
+            return;
+          }
+        }
+      }
+
+      if (current_point[2] >= 1) {
+        if (isValid(map_1[room_sa][row_sa][col_sa - 1]) &&
+            map_2[room_sa][row_sa][col_sa - 1] == 0) {
+          w[0] = current_point[0];
+          w[1] = current_point[1];
+          w[2] = current_point[2] - 1;
+          container.push_back(w);
+          map_2[room_sa][row_sa][col_sa - 1] = 'w';
+          if (map_1[room_sa][row_sa][col_sa - 1] == 'C') {
+            return;
+          }
+        }
+      }
+    }
+  }
+
+  void direction() {
+    array<uint32_t, 3> a = container.back();
+    while (a != Start_point) {
+      uint32_t room_direction = a[0];
+      uint32_t row_direction = a[1];
+      uint32_t col_direction = a[2];
+      auto ch = map_2[room_direction][row_direction][col_direction];
+      if (pipe_char != 0) {
+        map_2[room_direction][row_direction][col_direction] = pipe_char;
+        pipe_char = 0;
+      }
+      if (ch == 'n') {
+        ++a[1];
+        map_1[room_direction][a[1]][col_direction] = 'n';
+      }
+      if (ch == 'e') {
+        --a[2];
+        map_1[room_direction][row_direction][a[2]] = 'e';
+      }
+      if (ch == 's') {
+        --a[1];
+        map_1[room_direction][a[1]][col_direction] = 's';
+      }
+      if (ch == 'w') {
+        ++a[2];
+        map_1[room_direction][row_direction][a[2]] = 'w';
+      }
+      if (ch >= '0' && ch <= '9') {
+        pipe_num = static_cast<uint32_t>(ch - '0');
+        pipe_char = static_cast<char>(room_direction + '0');
+        map_1[pipe_num][row_direction][col_direction] = 'p';
+        a[0] = pipe_num;
+      }
+    }
+  }
+
+  void back() {
+    auto a = Start_point;
+    while (a != container.back()) {
+      uint32_t room_b = a[0];
+      uint32_t row_b = a[1];
+      uint32_t col_b = a[2];
+      cout << '(' << room_b << ',' << row_b << ',' << col_b << ','
+           << map_1[room_b][row_b][col_b] << ")\n";
+      if (map_1[room_b][row_b][col_b] == 's') {
+        ++a[1];
+      }
+      if (map_1[room_b][row_b][col_b] == 'w') {
+        --a[2];
+      }
+      if (map_1[room_b][row_b][col_b] == 'n') {
+        --a[1];
+      }
+      if (map_1[room_b][row_b][col_b] == 'e') {
+        ++a[2];
+      }
+      if (map_1[room_b][row_b][col_b] == 'p') {
+        a[0] = static_cast<uint32_t>(map_2[room_b][row_b][col_b] - '0');
+      }
+    }
+  }
+
+  void getMode(int argc, char *argv[]) {
+    // bool modeSpecified = false;
+    string mode;
+    // These are used with getopt_long()
+    opterr = false; // Let us handle all error output for command line options
+    int choice;
+    int option_index = 0;
+    option long_options[] = {// Fill in two lines, for the "mode" ('m') and
+                             // the "help" ('h') options.
+                             // .project0 -m nosize
+                             // .project0 -- help
+                             {"stack", no_argument, nullptr, 's'},
+                             {"queue", no_argument, nullptr, 'q'},
+                             {"output", required_argument, nullptr, 'o'},
+                             {"help", no_argument, nullptr, 'h'},
+                             {nullptr, 0, nullptr, '\0'}};
+    bool yes_p = false;
+
+    // Fill in the double quotes, to match the mode and help options.
+    bool op = false;
+
+    while ((choice = getopt_long(argc, argv, "sqo:h", long_options,
+                                 &option_index)) != -1) {
+      switch (choice) {
+      case 'h':
+        exit(0);
+
+      case 's':
+        dfs = true;
+        if (yes_p) {
+          exit(1);
+        } else {
+          yes_p = true;
+        }
+        break;
+
+      case 'q':
+        dfs = false;
+        if (yes_p) {
+          exit(1);
+        } else {
+          yes_p = true;
+        }
+        break;
+
+      case 'o':
+        op = true;
+        mode = optarg;
+        if (mode != "M" && mode != "L") {
+          cerr << "Unknown command line option" << '\n';
+          exit(1);
+        }
+        output_mode = mode[0];
+        break;
+
+      default:
+        cerr << "Error: invalid option" << '\n';
+        exit(1);
+      }
+    }
+    if (!op) {
+      output_mode = 'M';
+    }
+  }
+
+  void get_outputfile_M() {
+    cout << "Start in room " << Start_point[0] << ","
+         << " row " << Start_point[1] << ","
+         << " column " << Start_point[2] << '\n';
+
+    for (uint32_t room_om = 0; room_om < R; room_om++) {
+      cout << "//castle room " << room_om << '\n';
+      for (uint32_t row_om = 0; row_om < N; row_om++) {
+        for (uint32_t col_om = 0; col_om < N; col_om++) {
+          cout << map_1[room_om][row_om][col_om];
+        }
+        cout << '\n';
+      }
+    }
+  }
+
+  void get_outputfile_L() {
+    cout << "Path taken:\n";
+    back();
+  }
+};
+int main(int argc, char **argv) {
+  ios_base::sync_with_stdio(false);
+  castle c;
+  c.getMode(argc, argv);
+  char input = c.input_mode;
+  if (input == 'M') {
+    c.read_M();
+  } else if (input == 'L') {
+    c.read_L();
+  }
+
+  c.map_2[c.Start_point[0]][c.Start_point[1]][c.Start_point[2]] = 'S';
+  c.search_add();
+  c.direction();
+
+  char output = c.output_mode;
+  if (output == 'L') {
+    c.get_outputfile_L();
+  }
+
+  if (output == 'M') {
+    c.get_outputfile_M();
+  }
+}

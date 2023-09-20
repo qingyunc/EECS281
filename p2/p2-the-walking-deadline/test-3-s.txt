@@ -1,0 +1,17 @@
+# test 3
+quiver-capacity: 400
+random-seed: 2038452
+max-rand-distance: 20
+max-rand-speed: 1
+max-rand-health: 1
+---
+round: 1
+random-zombies: 1
+named-zombies: 1
+MarkSchlissel distance: 1 speed: 1 health: 1
+
+---
+round: 7
+random-zombies: 30
+named-zombies: 1
+JamesDuderstadt distance: 1 speed: 1 health: 1

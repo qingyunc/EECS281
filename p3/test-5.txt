@@ -1,0 +1,31 @@
+# Test Test Test Test
+CREATE 281class 3 string string bool emotion person Y/N
+INSERT INTO 281class 12 ROWS
+love Leo false
+Like Tom true
+happy lily false
+sick me true
+stress me false
+boring me false
+nofelling P true
+happy gsi false
+sick David true
+nervious me true
+busy Qingyun true
+bad Qingyun true
+DELETE FROM 281class WHERE person = Qingyun
+GENERATE FOR 281class hash INDEX ON person
+PRINT FROM 281class 2 person emotion WHERE Y/N = false
+PRINT FROM 281class 2 person emotion ALL
+CREATE pets 3 string bool bool Name likes_cats? likes_dogs?
+INSERT INTO pets 4 ROWS
+me true true 
+you false false
+he true false
+she false true
+GENERATE FOR pets hash INDEX ON likes_cats?
+PRINT FROM pets 1 Name ALL
+JOIN pets AND 281class WHERE Name = person AND PRINT 3 Name 1 person 2 likes_cats? 1
+REMOVE pets
+REMOVE 281class
+QUIT

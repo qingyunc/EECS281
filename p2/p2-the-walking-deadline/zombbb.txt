@@ -1,0 +1,395 @@
+// Project identifier 9504853406CBAC39EE89AA3AD238AA12CA198043
+#include "P2random.h" ///
+#include <algorithm>  ///
+#include <deque>      ///
+#include <getopt.h>   ///
+#include <iostream>   ///
+#include <queue>      ///
+#include <string>     ///
+#include <vector>     ///
+using namespace std;
+
+struct zombie { // check
+  string name;
+  uint32_t distance;
+  uint32_t speed;
+  uint32_t health;
+  uint32_t num_active;
+
+  zombie(string name_input, uint32_t distance_input, uint32_t speed_input,
+         uint32_t health_input)
+      : name(name_input), distance(distance_input), speed(speed_input),
+        health(health_input) {}
+};
+
+struct SortBy_eta { // comparator eta
+  bool operator()(const zombie *const &lhs, const zombie *const &rhs) const {
+    auto &&lhs_eta = lhs->distance / lhs->speed;
+    auto &&rhs_eta = rhs->distance / rhs->speed;
+    if (lhs_eta == rhs_eta) {
+      if (lhs->health == rhs->health) {
+        return lhs->name > rhs->name;
+
+      } else {
+        return lhs->health > rhs->health;
+      }
+    }
+    return lhs_eta > rhs_eta;
+  }
+};
+
+struct more_active_time { // comparator more time
+  bool operator()(const zombie *lhs, const zombie *rhs) const {
+    if (lhs->num_active == rhs->num_active) {
+      return lhs->name > rhs->name;
+    }
+    return lhs->num_active < rhs->num_active;
+  }
+};
+
+struct less_active_time { // comparator less time 可能出错
+  bool operator()(const zombie *lhs, const zombie *rhs) const {
+    if (lhs->num_active == rhs->num_active) {
+      return lhs->name > rhs->name;
+    }
+    return lhs->num_active > rhs->num_active;
+  }
+};
+
+struct median {
+  priority_queue<uint32_t, vector<uint32_t>, greater<>> max_heap;
+  priority_queue<uint32_t> min_heap;
+
+  bool empty() { return max_heap.empty() && min_heap.empty(); }
+
+  void add(const uint32_t &number) { //
+    if (max_heap.empty() || number >= max_heap.top()) {
+      max_heap.push(number);
+    } else {
+      min_heap.push(number);
+    }
+    if (max_heap.size() > min_heap.size() + 1) {
+      min_heap.push(max_heap.top());
+      max_heap.pop();
+    } else if (min_heap.size() > max_heap.size() + 1) {
+      max_heap.push(min_heap.top());
+      min_heap.pop();
+    }
+  }
+
+  uint32_t get_median() { //
+
+    if (max_heap.size() == min_heap.size()) {
+      return (max_heap.top() + min_heap.top()) / 2;
+    } else if (max_heap.size() > min_heap.size()) {
+      return max_heap.top();
+    } else if (min_heap.size() > max_heap.size()) {
+      return min_heap.top();
+    }
+    return 0;
+  }
+};
+
+class zombbb {
+public:
+  string temp;
+  deque<zombie> zombies;
+  priority_queue<zombie *, vector<zombie *>, SortBy_eta> pq;
+
+  priority_queue<zombie *, vector<zombie *>, more_active_time> longer;
+  priority_queue<zombie *, vector<zombie *>, less_active_time> shorter;
+
+  deque<zombie *> dead_zombies;
+
+  uint32_t quiver_capacity;
+  uint32_t num_quiver;
+
+  uint32_t random_seed;
+  uint32_t max_rand_distance;
+  uint32_t max_rand_speed;
+  uint32_t max_rand_health;
+
+  bool player_active = true;
+  uint32_t num_of_random_zombies;
+  uint32_t num_of_name_zombies;
+  uint32_t roun_temp;
+  uint32_t roun_next;
+  uint32_t roun_current = 1;
+  string first_eat_my_brain;
+
+  bool verbose = false;
+  bool stats = false;
+  bool median = false;
+  string N = "\0";
+  uint32_t n = 0;
+
+  void read_header() {
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+    cin >> temp >> quiver_capacity >> temp >> random_seed >> temp >>
+        max_rand_distance >> temp >> max_rand_speed >> temp >>
+        max_rand_health >> temp >> temp >> roun_next;
+
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+  }
+
+  void initialize() {
+    P2random::initialize(random_seed, max_rand_distance, max_rand_speed,
+                         max_rand_health);
+  }
+
+  uint32_t round() {
+    cin >> temp >> num_of_random_zombies;
+    while (num_of_random_zombies != 0) {
+      string r_n = P2random::getNextZombieName();
+      uint32_t r_d = P2random::getNextZombieDistance();
+      uint32_t r_s = P2random::getNextZombieSpeed();
+      uint32_t r_h = P2random::getNextZombieHealth();
+      if (verbose) {
+        cout << "Created: " << r_n << " (distance: " << r_d
+             << ", speed: " << r_s << ", health: " << r_h << ")";
+      }
+      zombie zombie_random(r_n, r_d, r_s, r_h);
+      zombies.push_back(zombie_random);
+      pq.push(&zombie_random);
+      num_of_random_zombies--;
+    }
+    cin >> temp >> num_of_name_zombies;
+    while (num_of_name_zombies != 0) {
+      string n_n;
+      uint32_t n_d;
+      uint32_t n_s;
+      uint32_t n_h;
+      cin >> n_n >> temp >> n_d >> temp >> n_s >> temp >> n_h;
+      if (verbose) {
+        cout << "Created: " << n_n << " (distance: " << n_d
+             << ", speed: " << n_s << ", health: " << n_h << ")";
+      }
+      zombie zombie_name(n_n, n_d, n_s, n_h);
+      zombies.push_back(zombie_name);
+      pq.push(&zombie_name);
+      num_of_name_zombies--;
+    }
+    cin >> temp >> temp >> roun_temp;
+    return roun_temp;
+  }
+
+  void stat_print() { // 输出 stat 的内容
+
+    uint32_t record_first = n;
+    uint32_t record_temp = 1;
+    uint32_t record_most = n;
+    uint32_t record_least = n;
+    deque<zombie *>::iterator k = dead_zombies.begin();
+    deque<zombie *>::iterator k_back = dead_zombies.end();
+
+    cout << "/n"
+         << "First zombies killed: "
+         << "/n";
+
+    while (record_first != 0 && k != dead_zombies.end()) { // 前n个杀死的
+      cout << (*k)->name << " " << record_temp << "\n";
+      record_temp++;
+      k++;
+      record_first--;
+    }
+
+    cout << "Last zombies killed:"
+         << "\n";
+    while (record_temp != 0 && k_back != dead_zombies.begin()) { // 后n个杀死的
+      cout << (*k_back)->name << " " << record_temp << "\n";
+      record_temp--;
+      k_back--;
+    }
+
+    cout << "Most active zombies:"
+         << "\n";
+    while (record_most != 0 && (!longer.empty())) {
+      cout << longer.top()->name << " " << longer.top()->num_active << "\n";
+      longer.pop();
+      record_most--;
+    }
+
+    cout << "Least active zombies:"
+         << "\n";
+    while (record_least != 0 && (!shorter.empty())) {
+      cout << shorter.top()->name << " " << shorter.top()->num_active << "\n";
+      shorter.pop();
+      record_least--;
+    }
+  }
+
+  void getMode(int argc, char *argv[]) {
+
+    string mode;
+    opterr = false;
+    int choice;
+    int option_index = 0;
+
+    option long_options[] = {
+        {"verbose", no_argument, nullptr, 'v'},
+        {"statistics", required_argument, nullptr, 's'},
+        {"median", no_argument, nullptr, 'm'},
+        {"help", no_argument, nullptr, 'h'},
+    };
+
+    while ((choice = getopt_long(argc, argv, "vs:mh", long_options,
+                                 &option_index)) != -1) {
+      switch (choice) {
+      case 'h':
+        cout << "somthing" << endl;
+        exit(1);
+        break;
+
+      case 'v':
+        verbose = true;
+        break;
+
+      case 's':
+        stats = true;
+        N = optarg;
+        n = static_cast<uint32_t>(stoul(N));
+        break;
+
+      case 'm':
+        median = true;
+        break;
+
+      default:
+        cerr << "Unknown command line option" << '\n';
+        exit(1);
+      }
+    }
+  }
+
+  void update() {
+    deque<zombie>::iterator ita = zombies.begin();
+    while (ita != zombies.end()) {
+      if (pq.empty()) {
+        break;
+      }
+      if (ita->distance <= ita->speed && ita->health != 0) {
+        ita->distance = 0;
+        if (player_active == true) {
+          first_eat_my_brain = ita->name;
+          player_active = false;
+        }
+        if (verbose) {
+          cout << "Moved: " << ita->name << " (distance: " << ita->distance
+               << ", speed: " << ita->speed << ", health: " << ita->health
+               << ")";
+        }
+        ita->num_active++;
+        ita++;
+      } else if (ita->health != 0) {
+        ita->distance -= ita->speed;
+        if (verbose) {
+          cout << "Moved: " << ita->name << " (distance: " << ita->distance
+               << ", speed: " << ita->speed << ", health: " << ita->health
+               << ")";
+        }
+        ita->num_active++;
+        ita++;
+      } else {
+        ita++;
+      }
+    }
+  }
+
+  void attack() {
+    struct median m;
+    num_quiver = quiver_capacity;
+    while (num_quiver != 0) {
+      if (pq.empty()) {
+        break;
+      }
+      if (num_quiver >= pq.top()->health) {
+        num_quiver -= pq.top()->health;
+        pq.top()->health = 0;
+
+        if (verbose) {
+          cout << "Destroyed: " << pq.top()->name
+               << " (distance: " << pq.top()->distance
+               << ", speed: " << pq.top()->speed
+               << ", health: " << pq.top()->health << ")";
+        }
+        if (stats) {
+          dead_zombies.push_back(pq.top());
+        }
+        if (median && m.empty()) {
+          m.max_heap.push(pq.top()->num_active);
+        } else if (median) {
+          m.add(pq.top()->num_active);
+        }
+        pq.pop();
+      } else {
+        pq.top()->health -= num_quiver;
+        num_quiver = 0;
+      }
+    }
+  }
+  
+};
+
+int main(int argc, char **argv) {
+  median mid;
+  auto z = zombbb();
+  z.getMode(argc, argv);
+  z.read_header();
+  z.initialize();
+  while (z.player_active) {
+    if (z.verbose) {
+      cout << "Round: " << z.roun_current << "\n";
+    }
+    z.num_quiver = z.quiver_capacity;
+    z.update();
+
+    if (!z.player_active) {
+      cout << "DEFEAT IN ROUND" << z.roun_current << "! "
+           << z.first_eat_my_brain << "ate your brains!"
+           << "\n";
+      if (z.stats) {
+        deque<zombie>::iterator i = z.zombies.begin();
+        while (i != z.zombies.end()) {
+          z.longer.push(&(*i));
+          z.shorter.push(&(*i));
+          i++;
+        }
+        cout << "Zombies still active: " << z.pq.size();
+      }
+      break;
+    }
+
+    if (z.roun_current == z.roun_next) {
+      z.roun_next = z.round();
+    }
+
+    z.attack();
+
+    if (!mid.empty() && z.median) {
+      cout << "At the end of round " << z.roun_current
+           << ", the median zombie lifetime is " << mid.get_median() << endl;
+    }
+   
+    if (!cin && z.pq.empty()) {
+      cout << "VICTORY IN ROUND " << z.roun_current << "! "
+           << z.dead_zombies.back()->name << " was the last zombie.";
+
+      if (z.stats) {
+        deque<zombie>::iterator i = z.zombies.begin();
+        while (i != z.zombies.end()) {
+          z.longer.push(&(*i));
+          z.shorter.push(&(*i));
+          i++;
+        }
+        cout << "Zombies still active: " << z.pq.size();
+      }
+      break;
+    }
+    z.roun_current++;
+  }
+  if (z.stats) {
+    z.stat_print();
+  }
+  return 0;
+}

@@ -1,0 +1,35 @@
+# lpx
+CREATE 281 2 int string grade name
+INSERT INTO test 10 ROWS
+100 Qingyun
+200 Qingyun
+300 whz
+400 xmq
+500 cxq
+600 slj
+700 lyw
+800 lzy
+900 www
+1000 ncjadnc
+PRINT FROM 281 2 grade name ALL
+GENERATE FOR test hash INDEX ON name
+PRINT FROM 281 2 grade name WHERE name = Qingyun
+DELETE FROM 281 WHERE name = slj
+PRINT FROM 281 2 frade name ALL
+PRINT FROM 281 2 order name WHERE name = Qingyun
+INSERT INTO 281 3 ROWS
+9 lyj
+10 Qingyun
+11 Qingyun
+12 lpx
+PRINT FROM test 2 order name ALL
+PRINT FROM test 2 order name WHERE name = Qingyun
+REMOVE 281
+CREATE 281 4 string int double bool name gra grade bool
+INSERT INTO 281 1 ROWS
+first 123 1.23 true
+ens  321 3.21 false
+PRINT FROM 281 4 name gra grade bool ALL
+PRINT FROM 281 4 name gra grade bool ALL
+REMOVE 281
+QUIT

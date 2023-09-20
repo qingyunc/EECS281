@@ -1,0 +1,18 @@
+# 12345
+# 67890
+CREATE 281class 2 string int name grade
+INSERT INTO 281class 4 ROWS
+Tom 100
+Leo 90
+David 40
+Pop 30
+GENERATE FOR 281class bst INDEX ON grade
+DELETE FROM 281class WHERE grade = 30
+PRINT FROM 281class 2 name grade ALL
+INSERT INTO 281class 2 ROWS
+lily 95
+falaha 67
+PRINT FROM 281class 2 name grade WHERE grade > 67
+REMOVE 281class
+Nope
+QUIT

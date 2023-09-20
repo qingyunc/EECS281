@@ -1,0 +1,38 @@
+# Checkpoint file 1: # (comment), CREATE, REMOVE, QUIT
+CREATE 281class 4 string string string bool name love class Y/N
+CREATE cities 5 string string int double bool name state population area is_capital?
+CREATE pets 3 string bool bool name likes_cats? likes_dogs?
+CREATE cartoon_characters 1 string name
+GENERATE FOR 281class hash INDEX ON person
+INSERT INTO 281class 7 ROWS
+I love 281 false
+I love 370 false
+I love 525 true
+I love 281 false
+I love 370 false
+I love 525 true
+I love 281 false
+DELETE FROM 281class WHERE Y/N = false
+DELETE FROM 281class WHERE Y/N = false
+INSERT INTO 281class 5 ROWS
+I love 217 true
+I love 215 false
+I love 423 false
+I love 426 true
+I love 474 false
+DELETE FROM 281class WHERE class = 281
+I love 474 false
+DELETE FROM 281class WHERE class = 281
+PRINT FROM 281class 2 name love WHERE Y/N = true
+CREATE pets 3 string bool bool Name likes_cats? likes_dogs?
+INSERT INTO pets 4 ROWS
+Leo true false
+Tom true false
+Sith true true
+Paoletti true true
+JOIN pets AND 281class WHERE likes_cats? = Y/N AND PRINT 2 Name 1 name 2 likes_dogs? 1
+REMOVE pets
+REMOVE 281class
+REMOVE pets
+REMOVE 281class
+QUIT
